@@ -11,10 +11,10 @@ class ParentNode(HtmlNode):
 
     def to_html(self):
         if not self.tag:
-            raise ValueError("Error: Parent Node must have a tag")
+            raise ValueError({"Error": "Parent Node must have a tag", "el": self})
 
         if not self.children:
-            raise ValueError("Error: Parent Node must have childrens")
+            raise ValueError({"Error": "Parent Node must have childrens", "el": self})
 
         parent = f'<{self.tag}{self.props_to_html()}>'
 

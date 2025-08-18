@@ -1,13 +1,14 @@
 from enum import Enum
+from src.parentnode import ParentNode
 
 
-class TextType(Enum):
-    TEXT = "text"
-    BOLD = "bold"
-    ITALIC = "italic"
-    CODE = "code"
-    LINK = "link"
-    IMAGE = "image"
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading",
+    CODE = "code",
+    QUOTE= "quote",
+    UNORDERED_LIST = "unordered_list",
+    ORDERED_LIST = "ordered_list",
 
     def get_tag(self):
         match self:
@@ -26,6 +27,7 @@ class TextType(Enum):
             # case _:
             #     print("It's neither 10 nor 20")
             #
+            
     def get_delimiter(self):
         match self:
             case self.BOLD:
@@ -42,20 +44,4 @@ class TextType(Enum):
                 return 'img'
             # case _:
             #     print("It's neither 10 nor 20")
-
-
-class TextNode:
-    def __init__(self, text:str, text_type: TextType, url = None):
-        self.text = text
-        self.text_type = text_type
-        self.url = url
-
-    def __eq__(self, node):
-        return (
-            (self.text == node.text)
-            and (self.text_type == node.text_type)
-            and (self.url == node.url)
-        )
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self.text}, {self.text_type.value}, {self.url})"
+            #
