@@ -24,35 +24,39 @@ def markdown_to_html_node(markdown):
     return ParentNode('div', childrens)
 
 def get_block_parent_html(block):
-    block_type = block_to_block_type(block)
+    try:
+        block_type = block_to_block_type(block)
 
-    if(block_type == BlockType.HEADING):
-        match = re.findall(r"^(#{1,6})\s(.*)", block)[0]
-        heading_count = match[0].count('#')
-        return ParentNode(f'h{heading_count}', children= text_to_children(match[1]))
-    if(block_type == BlockType.CODE):
-        match = re.findall(r"```(.*)```", block, re.DOTALL)
-        return ParentNode('code', children=[LeafNode(None, match[0])])
-    if(block_type == BlockType.QUOTE):
-        matches = re.findall(r"^>(.*)$", block, re.MULTILINE)
-        text = " ".join([match.strip() for match in matches])
-        return ParentNode('blockquote', children=text_to_children(text))
-    if(block_type == BlockType.UNORDERED_LIST):
-        childrens = []
-        for list_item in block.splitlines():
-            matches = re.findall(r"^- (.*)$", list_item)
-            childrens.append(ParentNode('li', children=text_to_children(matches[0])))
+        if(block_type == BlockType.HEADING):
+            match = re.findall(r"^(#{1,6})\s(.*)", block)[0]
+            heading_count = match[0].count('#')
+            return ParentNode(f'h{heading_count}', children= text_to_children(match[1]))
+        if(block_type == BlockType.CODE):
+            match = re.findall(r"```(.*)```", block, re.DOTALL)
+            return ParentNode('code', children=[LeafNode(None, match[0])])
+        if(block_type == BlockType.QUOTE):
+            matches = re.findall(r"^>(.*)$", block, re.MULTILINE)
+            text = " ".join([match.strip() for match in matches])
+            return ParentNode('blockquote', children=text_to_children(text))
+        if(block_type == BlockType.UNORDERED_LIST):
+            childrens = []
+            matches = re.findall(r'^\s*[-*+]\s+(.*?(?=\n\s*[-*+]|\Z))', block, re.DOTALL | re.MULTILINE)
+            for list_item in matches:
+                childrens.append(ParentNode('li', children=text_to_children(list_item)))
 
-        return ParentNode('ul', childrens)
-    if(block_type == BlockType.ORDERED_LIST):
-        childrens = []
-        for list_item in block.splitlines():
-            matches = re.findall(r"^\d+\.\s(.*)$", list_item)
-            childrens.append(ParentNode('li', children=text_to_children(matches[0])))
+            return ParentNode('ul', childrens)
+        if(block_type == BlockType.ORDERED_LIST):
+            childrens = []
+            matches = re.findall(r'^\s*\d+\.\s+(.*?(?=\n\s*\d+\.|\Z))', block, re.DOTALL | re.MULTILINE)
+            for list_item in matches:
+                childrens.append(ParentNode('li', children=text_to_children(list_item)))
 
-        return ParentNode('ol', childrens)
+            return ParentNode('ol', childrens)
 
-    return ParentNode('p', text_to_children(block))
+        return ParentNode('p', text_to_children(block))
+    except Exception:
+        print(list_item, 'is the context')
+        # raise Exception('test')
 
 
 def text_to_children(text):
@@ -104,16 +108,27 @@ def is_quote_block(block:str):
             return False
     return True
 
-def is_unordered_block(block:str):
-    lines = block.splitlines()
+def is_unordered_block(block:str) -> bool:
+    lines = block.strip().splitlines()
     if not lines:
         return False
-    pattern = r"^[-*+] "
+    
+    list_item_pattern = re.compile(r"^\s*[-*+]\s")
+    indented_line_pattern = re.compile(r"^\s{2,}")  # At least two spaces for indentation
 
-    for line in lines:
-        if not re.match(pattern, line):
+    list_item_matched = False
+    for i, line in enumerate(lines):
+        # A line can either be a new list item or an indented continuation line
+        is_list_item = list_item_pattern.match(line)
+        if is_list_item:
+            list_item_matched = True
+        is_indented = indented_line_pattern.match(line)
+        
+        if not is_list_item and not is_indented:
+            # If the line is neither a list item nor an indented line, the block is invalid.
             return False
-    return True
+            
+    return list_item_matched
 
 def is_ordered_block(block: str):
     """

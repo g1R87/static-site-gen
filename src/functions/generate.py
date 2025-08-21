@@ -1,11 +1,38 @@
 import os
 import shutil
 from pathlib import Path
+from src.functions.block import markdown_to_html_node
+from src.functions.markdown import extract_title
+
+def generate_page_r(dir_path_content, template_path, dest_dir_path):
+    if os.path.isfile(dir_path_content):
+        generate_page(dir_path_content, template_path, dest_dir_path.replace('.md', '.html'))
+    else:
+        items = os.listdir(dir_path_content)
+        for item in items:
+            generate_page_r(os.path.join(dir_path_content, item), template_path, os.path.join(dest_dir_path, item))
 
 def generate_page(from_path, template_path, dest_path):
-    print(f"Generating page form {from_path} to {dest_path} using {template_path}")
     temp_contents = get_file_contents(template_path)
     md_contents = get_file_contents(from_path)
+    print(f"Generating page form {from_path} to {dest_path} using {template_path}")
+
+    page_title = extract_title(md_contents)
+    html_string = markdown_to_html_node(md_contents).to_html()
+
+    html = temp_contents.replace("{{ Title }}", page_title).replace("{{ Content }}", html_string)
+    write_file(dest_path, html)
+
+def write_file(file_path, content):
+    path_obj = Path(file_path)
+
+    if  not os.path.isfile(file_path):
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(path_obj, 'w') as f:
+            f.write(content)
+
+        return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
 
 def get_file_contents(path, max = None):
     with open(path) as f:
