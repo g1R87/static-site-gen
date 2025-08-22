@@ -1,8 +1,8 @@
-from src.functions.generate import generate_public, generate_page_r 
+from src.functions.generate import generate_docs, generate_page_r 
 import sys
 
 def main():
-    generate_public()
+    generate_docs()
 
     first_arg_index = 1
     base_path = '/' if not first_arg_index < len(sys.argv) else sys.argv[1]

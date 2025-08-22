@@ -10,7 +10,7 @@ def generate_page_r(dir_path_content, template_path, dest_dir_path, base_path = 
     else:
         items = os.listdir(dir_path_content)
         for item in items:
-            generate_page_r(os.path.join(dir_path_content, item), template_path, os.path.join(dest_dir_path, item))
+            generate_page_r(os.path.join(dir_path_content, item), template_path, os.path.join(dest_dir_path, item), base_path)
 
 def generate_page(from_path, template_path, dest_path, base_path = ''):
     temp_contents = get_file_contents(template_path)
@@ -43,9 +43,24 @@ def get_file_contents(path, max = None):
         return f.read(max)
 
 def generate_public():
-    #INFO: this only works if called from main.sh in the rootdir
     static_dir = "./static"
     public_dir = "./public"
+
+    # prepare public direcotry
+    if os.path.exists(public_dir) and os.path.isdir(public_dir):
+        for item in os.listdir(public_dir):
+            try:
+                shutil.rmtree(os.path.join(public_dir, item))
+            except OSError:
+                os.remove(os.path.join(public_dir, item))
+    else:
+        os.mkdir(public_dir)
+
+    copy_file_r(static_dir, public_dir)
+
+def generate_docs():
+    static_dir = "./static"
+    public_dir = "./docs"
 
     # prepare public direcotry
     if os.path.exists(public_dir) and os.path.isdir(public_dir):
