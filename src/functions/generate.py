@@ -4,15 +4,15 @@ from pathlib import Path
 from src.functions.block import markdown_to_html_node
 from src.functions.markdown import extract_title
 
-def generate_page_r(dir_path_content, template_path, dest_dir_path):
+def generate_page_r(dir_path_content, template_path, dest_dir_path, base_path = ''):
     if os.path.isfile(dir_path_content):
-        generate_page(dir_path_content, template_path, dest_dir_path.replace('.md', '.html'))
+        generate_page(dir_path_content, template_path, dest_dir_path.replace('.md', '.html'), base_path)
     else:
         items = os.listdir(dir_path_content)
         for item in items:
             generate_page_r(os.path.join(dir_path_content, item), template_path, os.path.join(dest_dir_path, item))
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, base_path = ''):
     temp_contents = get_file_contents(template_path)
     md_contents = get_file_contents(from_path)
     print(f"Generating page form {from_path} to {dest_path} using {template_path}")
@@ -21,6 +21,10 @@ def generate_page(from_path, template_path, dest_path):
     html_string = markdown_to_html_node(md_contents).to_html()
 
     html = temp_contents.replace("{{ Title }}", page_title).replace("{{ Content }}", html_string)
+
+    if base_path != '':
+        html = html.replace('href="/', f'href={base_path}').replace('src="/', f'src={base_path}')
+
     write_file(dest_path, html)
 
 def write_file(file_path, content):
